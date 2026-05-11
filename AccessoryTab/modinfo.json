@@ -1,0 +1,11 @@
+{
+  "type": "code",
+  "modid": "accessorytab",
+  "name": "AccessoryTab",
+  "side": "universal",
+  "requiredOnClient": true,
+  "authors": [ "Purplep_" ],
+  "description": "Adds an accessory tab with synced extra equipment slots for cosmetic and wearable items, with multiplayer support and more specialized Accessorize-compatible slots planned as a WIP.",
+  "version": "1.0.0",
+  "dependencies": { "game": "" }
+}

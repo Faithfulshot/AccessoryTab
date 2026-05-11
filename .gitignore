@@ -1,0 +1,15 @@
+*.DS_Store
+*.sln.DotSettings.user
+*.csproj.user
+*.user
+*.suo
+*.tmp
+*.cache
+
+bin/
+obj/
+.idea/
+.vs/
+.vscode/
+.tools/
+Releases/

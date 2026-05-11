@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AccessoryTab/AccessoryTab.csproj" />
+  <Project Path="CakeBuild/CakeBuild.csproj" />
+</Solution>

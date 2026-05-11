@@ -1,0 +1,23 @@
+{
+  "profiles": {
+    "Client": {
+      "commandName": "Executable",
+      "executablePath": "$(VINTAGE_STORY)\\Vintagestory.exe",
+      "commandLineArgs": "--tracelog --addModPath \"C:\\Users\\Admin\\Desktop\\Repos\\AccessoryTab\\AccessoryTab\\bin\\Debug\\Mods\"",
+      "workingDirectory": "$(VINTAGE_STORY)"
+    },
+    "Client2": {
+      "commandName": "Executable",
+      "executablePath": "$(VINTAGE_STORY)\\Vintagestory.exe",
+      "commandLineArgs": "--dataPath \"C:\\Users\\Admin\\AppData\\Roaming\\VintagestoryData2\" --tracelog --addModPath \"C:\\Users\\Admin\\Desktop\\Repos\\AccessoryTab\\AccessoryTab\\bin\\Debug\\Mods\"",
+      "workingDirectory": "$(VINTAGE_STORY)"
+    },
+    "Server": {
+      "commandName": "Executable",
+      "executablePath": "dotnet",
+      "commandLineArgs": "\"$(VINTAGE_STORY)/VintagestoryServer.dll\" --tracelog --addModPath \"C:\\Users\\Admin\\Desktop\\Repos\\AccessoryTab\\AccessoryTab\\bin\\Debug\\Mods\"",
+      "workingDirectory": "$(VINTAGE_STORY)",
+      "remoteDebugEnabled": false
+    }
+  }
+}

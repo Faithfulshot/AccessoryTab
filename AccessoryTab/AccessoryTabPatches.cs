@@ -8,6 +8,7 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
+using Cairo;
 
 namespace AccessoryTab;
 
@@ -214,29 +215,56 @@ public static class AccessoryTabGuiPatch
             double bottomY = insetBounds.fixedY + insetBounds.fixedHeight - bottomMargin - slotH;
             double step = (bottomY - topY) / 3.0;
 
-            ElementBounds c1r1 = ElementBounds.Fixed(col1X, topY, slotW, slotH);
-            ElementBounds c1r2 = ElementBounds.Fixed(col1X, topY + step, slotW, slotH);
-            ElementBounds c1r3 = ElementBounds.Fixed(col1X, topY + step * 2, slotW, slotH);
-            ElementBounds c1r4 = ElementBounds.Fixed(col1X, bottomY, slotW, slotH);
+            // Slot positions: [slotIndex, x, y]
+            var slotPositions = new (int idx, double x, double y)[]
+            {
+                (0, col1X, topY),
+                (1, col1X, topY + step),
+                (2, col1X, topY + step * 2),
+                (3, col1X, bottomY),
+                (4, col2X, topY),
+                (5, col2X, topY + step),
+                (6, col2X, topY + step * 2),
+                (7, col2X, bottomY),
+            };
 
-            ElementBounds c2r1 = ElementBounds.Fixed(col2X, topY, slotW, slotH);
-            ElementBounds c2r2 = ElementBounds.Fixed(col2X, topY + step, slotW, slotH);
-            ElementBounds c2r3 = ElementBounds.Fixed(col2X, topY + step * 2, slotW, slotH);
-            ElementBounds c2r4 = ElementBounds.Fixed(col2X, bottomY, slotW, slotH);
+            // Semi-transparent dark overlay color for disabled slots
+            var disabledColor = new double[] { 0, 0, 0, 0.65 };
 
             ElementBounds labelBounds = ElementBounds.Fixed(insetBounds.fixedX + 6, insetBounds.fixedY + 2, 140, 20);
+            composer.AddStaticText("Accessories", CairoFont.WhiteSmallText(), labelBounds);
 
-            composer
-                .AddStaticText("Accessories", CairoFont.WhiteSmallText(), labelBounds)
-                .AddItemSlotGrid(inv, SendPacketHandler, 1, new[] { 0 }, c1r1, "accR11")
-                .AddItemSlotGrid(inv, SendPacketHandler, 1, new[] { 1 }, c1r2, "accR12")
-                .AddItemSlotGrid(inv, SendPacketHandler, 1, new[] { 2 }, c1r3, "accR13")
-                .AddItemSlotGrid(inv, SendPacketHandler, 1, new[] { 3 }, c1r4, "accR14")
-                .AddItemSlotGrid(inv, SendPacketHandler, 1, new[] { 4 }, c2r1, "accR21")
-                .AddItemSlotGrid(inv, SendPacketHandler, 1, new[] { 5 }, c2r2, "accR22")
-                .AddItemSlotGrid(inv, SendPacketHandler, 1, new[] { 6 }, c2r3, "accR23")
-                .AddItemSlotGrid(inv, SendPacketHandler, 1, new[] { 7 }, c2r4, "accR24")
-                .AddInset(insetBounds, 0);
+            foreach (var (idx, x, y) in slotPositions)
+            {
+                var bounds = ElementBounds.Fixed(x, y, slotW, slotH);
+                bool enabled = AccessoryTabCore.IsSlotEnabled(idx);
+
+                // Always render the slot grid so the slot background is visible
+                composer.AddItemSlotGrid(inv, SendPacketHandler, 1, new[] { idx }, bounds, $"accSlot{idx}");
+
+                // Overlay a dark transparent rectangle on disabled slots
+                if (!enabled)
+                {
+                    // Shrink inward slightly so the overlay sits neatly inside the slot border
+                    var overlayBounds = ElementBounds.Fixed(x + 2, y + 2, slotW - 4, slotH - 4);
+                    double[] dc = disabledColor;
+                    composer.AddDynamicCustomDraw(overlayBounds, (ctx, surface, b) =>
+                    {
+                        ctx.SetSourceRGBA(dc[0], dc[1], dc[2], dc[3]);
+                        ctx.Rectangle(0, 0, b.OuterWidth, b.OuterHeight);
+                        ctx.Fill();
+
+                        // Draw a small "X" or lock indicator in the centre
+                        ctx.SetSourceRGBA(1, 1, 1, 0.55);
+                        ctx.SelectFontFace("Sans", Cairo.FontSlant.Normal, Cairo.FontWeight.Bold);
+                        ctx.SetFontSize(11);
+                        ctx.MoveTo(b.OuterWidth / 2.0 - 4, b.OuterHeight / 2.0 + 4);
+                        ctx.ShowText("✕");
+                    }, $"accDisabled{idx}");
+                }
+            }
+
+            composer.AddInset(insetBounds, 0);
         }
         catch (Exception ex)
         {
@@ -244,14 +272,36 @@ public static class AccessoryTabGuiPatch
         }
     }
 
+    /// <summary>
+    /// Handles sending client packets to the server when accessories are modified in the GUI.
+    /// Used by the item slot grid in the character dialog's accessories tab.
+    /// </summary>
+    /// <param name="packet">The packet to send to the server</param>
     private static void SendPacketHandler(object packet)
     {
         try
         {
-            if (packet == null) return;
+            if (packet == null)
+            {
+                AccessoryTabCore.Logger?.Warning("[AccessoryTab] SendPacketHandler received null packet");
+                return;
+            }
 
             var capi = AccessoryTabCore.Capi ?? AccessoryTabPatches.ClientApi;
-            capi?.Network?.SendPacketClient(packet);
+            if (capi == null)
+            {
+                AccessoryTabCore.Logger?.Error("[AccessoryTab] Cannot send packet: Client API is null");
+                return;
+            }
+
+            if (capi.Network == null)
+            {
+                AccessoryTabCore.Logger?.Error("[AccessoryTab] Cannot send packet: Network API is null");
+                return;
+            }
+
+            capi.Network.SendPacketClient(packet);
+            AccessoryTabCore.Logger?.Debug("[AccessoryTab] Sent packet to server from client");
         }
         catch (Exception ex)
         {

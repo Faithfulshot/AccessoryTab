@@ -1,57 +1,64 @@
+﻿using System;
 using Vintagestory.API.Common;
 
 namespace AccessoryTab;
 
 /// <summary>
-/// Custom item slot for accessories with property-specific validation hooks.
-/// This class allows per-slot-type customization (max stack size, category restrictions, etc.)
+/// Custom item slot for accessories with config-driven validation.
+/// Blocks item placement when a slot is disabled, and enforces per-slot category restrictions.
 /// </summary>
 public class AccessorySlot : ItemSlot
 {
-    public AccessorySlot(InventoryBase inventory) : base(inventory)
+    /// <summary>
+    /// The index (0-7) of this slot within the AccessoryInventory.
+    /// Used to look up configuration such as enabled/disabled state and category restrictions.
+    /// </summary>
+    public int SlotIndex { get; }
+
+    public AccessorySlot(InventoryBase inventory, int slotIndex) : base(inventory)
     {
+        SlotIndex = slotIndex;
     }
 
     /// <summary>
-    /// Override this to validate item placement for specific slot types.
-    /// Return true to allow placement, false to reject.
+    /// Determines whether a specific item can be placed in this accessory slot.
+    /// Returns false immediately if the slot is disabled via server configuration.
+    /// Also enforces per-slot category restrictions configured by admins.
     /// </summary>
-    /// <remarks>
-    /// EXAMPLE: Add property-specific code here to restrict item categories per slot:
-    /// 
-    /// public override bool CanHold(ItemSlot itemSlot)
-    /// {
-    ///     if (!base.CanHold(itemSlot)) return false;
-    ///     
-    ///     // TODO: Implement slot-specific item type validation
-    ///     // var slotRule = AccessoryTabCore.GetSlotRule(this.SlotNumber);
-    ///     // if (slotRule != null && itemSlot.Itemstack?.Item?.ItemClass != slotRule)
-    ///     //     return false;
-    ///     
-    ///     return true;
-    /// }
-    /// </remarks>
+    /// <param name="itemSlot">The slot containing the item being placed</param>
+    /// <returns>True if the item can be placed, false otherwise</returns>
     public override bool CanHold(ItemSlot itemSlot)
     {
-        return base.CanHold(itemSlot);
+        // Disabled slots reject all items
+        if (!AccessoryTabCore.IsSlotEnabled(SlotIndex))
+            return false;
+
+        if (!base.CanHold(itemSlot)) return false;
+
+        // Enforce per-slot category restrictions from config
+        var slotConfig = AccessoryTabCore.GetSlotConfig(SlotIndex);
+        if (slotConfig?.AllowedCategories != null && slotConfig.AllowedCategories.Count > 0)
+        {
+            var itemClass = itemSlot.Itemstack?.Item?.ItemClass.ToString()
+                         ?? itemSlot.Itemstack?.Block?.Code?.ToString();
+            if (itemClass == null) return false;
+
+            foreach (var cat in slotConfig.AllowedCategories)
+            {
+                if (itemClass.IndexOf(cat, StringComparison.OrdinalIgnoreCase) >= 0)
+                    return true;
+            }
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>
-    /// Override this to customize maximum stack size for specific slots.
+    /// Gets the maximum stack size allowed in this accessory slot.
+    /// Disabled slots report 0 to further prevent interaction.
     /// </summary>
-    /// <remarks>
-    /// EXAMPLE: Add property-specific code here for max stack size validation:
-    /// 
-    /// public override int MaxSlotStackSize
-    /// {
-    ///     get
-    ///     {
-    ///         // Accessories typically have max stack of 1
-    ///         // TODO: Customize per slot if needed
-    ///         var item = Itemstack?.Item;
-    ///         return item?.MaxStackSize ?? 1;
-    ///     }
-    /// }
-    /// </remarks>
-    public override int MaxSlotStackSize => Itemstack?.Item?.MaxStackSize ?? 1;
+    public override int MaxSlotStackSize => AccessoryTabCore.IsSlotEnabled(SlotIndex)
+        ? (Itemstack?.Item?.MaxStackSize ?? 1)
+        : 0;
 }

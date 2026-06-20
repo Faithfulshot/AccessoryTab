@@ -1,0 +1,132 @@
+{
+  "_comment": "AccessoryTab Configuration - Controls which accessory slots are enabled and where they map to in the game",
+  "_documentation": "See https://github.com/yourrepo/AccessoryTab/wiki/Configuration for full documentation",
+
+  "enabledSlots": [0, 1, 2, 3, 4, 5, 6, 7],
+  "_enabledSlots_comment": "Array of slot indices (0-7) that are enabled. Remove indices to disable slots.",
+
+  "slotMappings": {
+    "_comment": "Maps accessory slots to game inventory slots. Use null for custom accessory-only slots.",
+    "_format": "slotIndex: { type, targetSlot, enabled, displayName, allowedCategories }",
+    "_types": "Options: 'accessory' (custom slot), 'vanilla' (redirect to vanilla slot), 'modded' (redirect to mod slot)",
+
+    "0": {
+      "enabled": true,
+      "type": "accessory",
+      "displayName": "Accessory Slot 1",
+      "targetSlot": null,
+      "allowedCategories": [],
+      "_allowedCategories_comment": "Empty array = allow all items. Use item class names to restrict (e.g., ['Armor', 'Wearable'])"
+    },
+
+    "1": {
+      "enabled": true,
+      "type": "accessory",
+      "displayName": "Accessory Slot 2",
+      "targetSlot": null,
+      "allowedCategories": []
+    },
+
+    "2": {
+      "enabled": true,
+      "type": "accessory",
+      "displayName": "Accessory Slot 3",
+      "targetSlot": null,
+      "allowedCategories": []
+    },
+
+    "3": {
+      "enabled": true,
+      "type": "accessory",
+      "displayName": "Accessory Slot 4",
+      "targetSlot": null,
+      "allowedCategories": []
+    },
+
+    "4": {
+      "enabled": true,
+      "type": "accessory",
+      "displayName": "Accessory Slot 5",
+      "targetSlot": null,
+      "allowedCategories": []
+    },
+
+    "5": {
+      "enabled": true,
+      "type": "accessory",
+      "displayName": "Accessory Slot 6",
+      "targetSlot": null,
+      "allowedCategories": []
+    },
+
+    "6": {
+      "enabled": true,
+      "type": "accessory",
+      "displayName": "Accessory Slot 7",
+      "targetSlot": null,
+      "allowedCategories": []
+    },
+
+    "7": {
+      "enabled": true,
+      "type": "accessory",
+      "displayName": "Accessory Slot 8",
+      "targetSlot": null,
+      "allowedCategories": []
+    }
+  },
+
+  "examples": {
+    "_comment": "These are example configurations. Copy and modify the slotMappings above as needed.",
+
+    "exampleVanillaRedirect": {
+      "_description": "Redirect slot 0 to vanilla back slot (cloak/cape)",
+      "0": {
+        "enabled": true,
+        "type": "vanilla",
+        "displayName": "Cape Slot",
+        "targetSlot": "back",
+        "allowedCategories": ["Wearable"]
+      }
+    },
+
+    "exampleModdedSlot": {
+      "_description": "Connect to a modded inventory slot from another mod",
+      "1": {
+        "enabled": true,
+        "type": "modded",
+        "displayName": "Modded Accessory",
+        "targetSlot": "modname:slotname",
+        "allowedCategories": []
+      }
+    },
+
+    "exampleDisableSlot": {
+      "_description": "Disable a slot entirely",
+      "2": {
+        "enabled": false,
+        "type": "accessory",
+        "displayName": "Disabled Slot",
+        "targetSlot": null,
+        "allowedCategories": []
+      }
+    },
+
+    "exampleRestrictedSlot": {
+      "_description": "Only allow specific item categories",
+      "3": {
+        "enabled": true,
+        "type": "accessory",
+        "displayName": "Helmet Slot",
+        "targetSlot": null,
+        "allowedCategories": ["Armor-Head", "Hat"]
+      }
+    }
+  },
+
+  "vanillaSlotReference": {
+    "_comment": "Reference of vanilla Vintage Story inventory slots you can redirect to",
+    "gear": ["head", "body", "legs", "shoulder", "arms", "emblem", "neck", "back", "face", "hand", "waist", "feet"],
+    "notes": "Use these names in 'targetSlot' when type is 'vanilla'"
+  }
+}

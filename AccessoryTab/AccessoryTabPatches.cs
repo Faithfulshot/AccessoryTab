@@ -240,7 +240,7 @@ public static class AccessoryTabGuiPatch
                 bool enabled = AccessoryTabCore.IsSlotEnabled(idx);
 
                 // Always render the slot grid so the slot background is visible
-                composer.AddItemSlotGrid(inv, SendPacketHandler, 1, new[] { idx }, bounds, $"accSlot{idx}");
+                composer.AddItemSlotGrid(inv,  SendPacketHandler  ,1, new[] { idx }, bounds, $"accSlot{idx}");
 
                 // Overlay a dark transparent rectangle on disabled slots
                 if (!enabled)
@@ -248,19 +248,6 @@ public static class AccessoryTabGuiPatch
                     // Shrink inward slightly so the overlay sits neatly inside the slot border
                     var overlayBounds = ElementBounds.Fixed(x + 2, y + 2, slotW - 4, slotH - 4);
                     double[] dc = disabledColor;
-                    composer.AddDynamicCustomDraw(overlayBounds, (ctx, surface, b) =>
-                    {
-                        ctx.SetSourceRGBA(dc[0], dc[1], dc[2], dc[3]);
-                        ctx.Rectangle(0, 0, b.OuterWidth, b.OuterHeight);
-                        ctx.Fill();
-
-                        // Draw a small "X" or lock indicator in the centre
-                        ctx.SetSourceRGBA(1, 1, 1, 0.55);
-                        ctx.SelectFontFace("Sans", Cairo.FontSlant.Normal, Cairo.FontWeight.Bold);
-                        ctx.SetFontSize(11);
-                        ctx.MoveTo(b.OuterWidth / 2.0 - 4, b.OuterHeight / 2.0 + 4);
-                        ctx.ShowText("✕");
-                    }, $"accDisabled{idx}");
                 }
             }
 
@@ -277,6 +264,7 @@ public static class AccessoryTabGuiPatch
     /// Used by the item slot grid in the character dialog's accessories tab.
     /// </summary>
     /// <param name="packet">The packet to send to the server</param>
+    
     private static void SendPacketHandler(object packet)
     {
         try
@@ -301,6 +289,7 @@ public static class AccessoryTabGuiPatch
             }
 
             capi.Network.SendPacketClient(packet);
+
             AccessoryTabCore.Logger?.Debug("[AccessoryTab] Sent packet to server from client");
         }
         catch (Exception ex)
@@ -308,6 +297,7 @@ public static class AccessoryTabGuiPatch
             AccessoryTabCore.Logger?.Error("[AccessoryTab] Packet send error: " + ex.Message);
         }
     }
+    
 }
 
 [HarmonyPatch(typeof(GuiDialogCharacter), "OnRenderGUI")]

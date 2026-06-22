@@ -756,7 +756,9 @@ public partial class AccessoryTabCore : ModSystem
 
             channel.BroadcastPacket(packet);
 
+#if DEBUG
             Logger?.Debug($"[AccessoryTab] Broadcasted accessories for {forPlayer.PlayerName} (UID: {forPlayer.PlayerUID})");
+#endif
         }
         catch (Exception ex)
         {
